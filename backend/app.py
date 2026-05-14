@@ -7,8 +7,7 @@ from datetime import datetime
 app = Flask(__name__)
 CORS(app)
 
-client = MongoClient("mongodb://localhost:27017/")
-db = client["attention_db"]
+mongodb+srv://Sai_Koushil_2003:Koushil@2003@cluster0.tez0v.mongodb.net/?appName=Cluster0db = client["attention_db"]
 students_collection = db["students"]
 
 @app.route("/login", methods=["POST"])
