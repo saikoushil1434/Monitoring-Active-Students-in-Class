@@ -1,72 +1,77 @@
-import time
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-client = MongoClient("mongodb+srv://Sai_Koushil_2003:Koushil%402003@cluster0.tez0v.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+client = MongoClient(
+    "mongodb+srv://Sai_Koushil_2003:Koushil%402003@cluster0.tez0v.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+)
 
-db = client["attention_db"]
-students_collection = db["students"]
+# Database
+DB = client["attention_db"]
+students = DB["students"]
 
-@app.route("/login", methods=["POST"])
+# =============================
+# LOGIN
+# =============================
+@app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    student_name = data.get("name")
+    name = data.get('name')
 
-    if not student_name:
+    if not name:
         return jsonify({"error": "Name required"}), 400
 
-    # If student already exists, just return ID
-    student = students_collection.find_one({"name": student_name})
-    if student:
-        return jsonify({"student_id": student["student_id"]})
+    student = students.find_one({"name": name})
 
-    # Generate new student ID
-    count = students_collection.count_documents({})
+    if student:
+        return jsonify({"student_id": student['student_id']})
+
+    count = students.count_documents({})
     student_id = f"S{count+1:03}"
 
-    students_collection.insert_one({
+    students.insert_one({
         "student_id": student_id,
-        "name": student_name,
+        "name": name,
         "total_attentive": 0,
         "total_distracted": 0,
-        "last_state": None,
+        "last_state": "unknown",
         "last_seen": None
     })
 
     return jsonify({"student_id": student_id})
 
-@app.route("/log", methods=["POST"])
-def log():
+# =============================
+# LOG ATTENTION
+# =============================
+@app.route('/log', methods=['POST'])
+def log_attention():
     data = request.get_json()
-    student_id = data.get("student_id")
-    state = data.get("state")
+
+    student_id = data.get('student_id')
+    state = data.get('state')
 
     if not student_id or not state:
-        return jsonify({"error": "Bad Request"}), 400
+        return jsonify({"error": "Invalid request"}), 400
 
-    students_collection.update_one(
+    students.update_one(
         {"student_id": student_id},
-        {"$inc": {f"total_{state}": 1},
-         "$set": {"last_state": state, "last_seen": datetime.now()}}
+        {
+            "$inc": {
+                f"total_{state}": 1
+            },
+            "$set": {
+                "last_state": state,
+                "last_seen": datetime.now()
+            }
+        }
     )
 
-    return jsonify({"message": "Logged"})
+    return jsonify({"message": "updated"})
 
-@app.route("/students", methods=["GET"])
-def get_students():
-    students = students_collection.find()
-    result = []
-    for s in students:
-        s["_id"] = str(s["_id"])
-        result.append(s)
-    return jsonify(result)
-
-if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+# =============================
+    app.run(host='0.0.0.0', port=port)

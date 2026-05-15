@@ -14,7 +14,7 @@ print(f"🎓 Tracking attention for Student ID: {STUDENT_ID}")
 # ==============================
 # BACKEND API
 # ==============================
-BACKEND_LOG_ENDPOINT = "http://localhost:5000/log"
+BACKEND_LOG_ENDPOINT = "https://monitoring-active-students-in-class-1.onrender.com/log"
 EAR_THRESHOLD = 0.20
 YAW_THRESHOLD = 20.0
 REPORT_INTERVAL = 5.0  # send log every 5 seconds
